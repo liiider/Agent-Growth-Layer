@@ -20,7 +20,7 @@ class Guidance:
         skills = self.guidance.get("verified_skills", [])
         if not skills:
             return "Verified Skills:\nNone."
-        return "Verified Skills:\n" + _render_numbered_skills(skills)
+        return "Verified Skills:\n" + _render_numbered_skills(skills, status="verified")
 
     def _render_candidate_skills(self) -> str:
         skills = self.guidance.get("candidate_skills", [])
@@ -30,14 +30,14 @@ class Guidance:
         return (
             "Candidate Skills:\n"
             "Candidate Skills are unverified. Use them cautiously.\n\n"
-            + _render_numbered_skills(skills)
+            + _render_numbered_skills(skills, status="candidate")
         )
 
     def _render_seed_skills(self) -> str:
         skills = self.guidance.get("seed_skills", [])
         if not skills:
             return "Seed Skills:\nNone."
-        return "Seed Skills:\n" + _render_numbered_skills(skills)
+        return "Seed Skills:\n" + _render_numbered_skills(skills, status="seed")
 
     def _render_error_patterns(self) -> str:
         patterns = self.guidance.get("error_patterns", [])
@@ -52,10 +52,10 @@ class Guidance:
         return "Output Guidance:\n" + _render_bullets(guidance)
 
 
-def _render_numbered_skills(skills: list[dict[str, Any]]) -> str:
+def _render_numbered_skills(skills: list[dict[str, Any]], *, status: str) -> str:
     rendered = []
     for index, skill in enumerate(skills, start=1):
-        lines = [f"{index}. {skill.get('name', skill.get('id', 'Unnamed Skill'))}"]
+        lines = [f"{index}. {_render_skill_title(skill, status=status)}"]
 
         applies_when = skill.get("applies_when")
         if applies_when:
@@ -83,3 +83,24 @@ def _render_numbered_skills(skills: list[dict[str, Any]]) -> str:
 
 def _render_bullets(items: list[str]) -> str:
     return "\n".join(f"- {item}" for item in items)
+
+
+def _render_skill_title(skill: dict[str, Any], *, status: str) -> str:
+    name = skill.get("name", skill.get("id", "Unnamed Skill"))
+
+    if status == "candidate":
+        weight = skill.get("weight", "unknown")
+        return f"{name} [Caution: unverified, {weight} weight]"
+
+    if status == "verified":
+        exam_score = skill.get("exam_score")
+        if exam_score is None:
+            latest_exam = skill.get("latest_exam") or {}
+            exam_score = latest_exam.get("score")
+
+        if exam_score is None:
+            return f"{name} [Verified]"
+
+        return f"{name} [Verified, exam score: {exam_score:.2f}]"
+
+    return name

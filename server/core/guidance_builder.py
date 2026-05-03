@@ -9,7 +9,7 @@ class GuidanceBuilder:
         self.seed_skill_repository = seed_skill_repository
 
     def build(self, request: GuidanceRequest) -> GuidanceResponse:
-        seed_skills = self.seed_skill_repository.list()
+        seed_skills = self._select_seed_skills(request)
         output_guidance = self._merge_output_guidance(seed_skills)
         tool_policy = self._merge_tool_policy(seed_skills)
 
@@ -32,6 +32,18 @@ class GuidanceBuilder:
     @staticmethod
     def _merge_tool_policy(seed_skills: list) -> list[str]:
         return _unique(item for skill in seed_skills for item in skill.tool_policy)
+
+    def _select_seed_skills(self, request: GuidanceRequest) -> list:
+        skills = self.seed_skill_repository.list()
+        domain_matches = [
+            skill for skill in skills if request.domain in skill.domain
+        ]
+        general_matches = [
+            skill
+            for skill in skills
+            if "general" in skill.domain and skill not in domain_matches
+        ]
+        return domain_matches + general_matches
 
 
 def _unique(items: object) -> list[str]:

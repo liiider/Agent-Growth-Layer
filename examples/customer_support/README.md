@@ -2,6 +2,18 @@
 
 This example uses cold-start guidance for a refund question.
 
+Start the API:
+
+```powershell
+uvicorn server.main:app --reload
+```
+
+Run the example:
+
+```powershell
+python examples/customer_support/run.py --message "Why was my refund rejected?"
+```
+
 ```python
 from agent_growth import AgentGrowthClient
 

@@ -98,6 +98,8 @@ uvicorn server.main:app --reload
 - `GET /v1/seed-skills/{id}`
 - `GET /health`
 
+See `docs/api.md` for request and response examples.
+
 ## Seed Skills
 
 Seed skills live in `templates/seed_skills/` and are loaded from YAML at runtime.
