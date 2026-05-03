@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+import time
 from typing import Any
 
 import httpx
@@ -21,9 +22,17 @@ def main() -> int:
 
 
 class LocalMvpVerifier:
-    def __init__(self, base_url: str) -> None:
+    def __init__(
+        self,
+        base_url: str,
+        *,
+        poll_interval_seconds: float = 0.2,
+        max_wait_seconds: float = 10,
+    ) -> None:
         self.base_url = base_url.rstrip("/")
         self.client = httpx.Client(timeout=20)
+        self.poll_interval_seconds = poll_interval_seconds
+        self.max_wait_seconds = max_wait_seconds
 
     def run(self) -> None:
         self.health()
@@ -71,7 +80,7 @@ class LocalMvpVerifier:
             },
         )
         experience_id = created["experience_id"]
-        experience = self.get(f"/v1/experiences/{experience_id}")
+        experience = self.wait_for_extraction(experience_id)
         assert experience["extraction_status"] == "succeeded"
         assert experience["cognition_ids"]
         cognition_id = experience["cognition_ids"][0]
@@ -80,6 +89,21 @@ class LocalMvpVerifier:
         assert cognition["evidence_refs"] == [experience_id]
         print(f"experience learning: {experience_id} -> {cognition_id}")
         return experience_id, cognition_id
+
+    def wait_for_extraction(self, experience_id: str) -> dict[str, Any]:
+        deadline = time.monotonic() + self.max_wait_seconds
+        last_status = "unknown"
+        while time.monotonic() <= deadline:
+            experience = self.get(f"/v1/experiences/{experience_id}")
+            last_status = experience["extraction_status"]
+            if last_status == "succeeded":
+                return experience
+            if last_status == "failed":
+                raise AssertionError(f"experience extraction failed for {experience_id}")
+            time.sleep(self.poll_interval_seconds)
+        raise AssertionError(
+            f"experience extraction timed out for {experience_id}; last status: {last_status}"
+        )
 
     def feedback(self, experience_id: str) -> None:
         feedback = self.post(
