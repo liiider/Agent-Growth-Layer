@@ -205,6 +205,11 @@ tests/                    API and SDK tests
 ## Stage Notes
 
 Implementation handoff notes live in `docs/handoffs/`.
+Documentation starts at `docs/index.md`.
+
+## Contributing
+
+See `CONTRIBUTING.md`.
 
 ## Boundaries
 
