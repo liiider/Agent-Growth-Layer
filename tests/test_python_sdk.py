@@ -1,4 +1,4 @@
-from sdk.python.agent_growth.guidance import Guidance
+from agent_growth import AgentGrowthClient, Guidance
 
 
 def test_guidance_to_prompt_renders_cold_start_sections() -> None:
@@ -29,3 +29,9 @@ def test_guidance_to_prompt_renders_cold_start_sections() -> None:
     assert "Seed Skills:" in prompt
     assert "Uncertainty Handling" in prompt
     assert "Start by identifying missing information." in prompt
+
+
+def test_sdk_exports_client() -> None:
+    client = AgentGrowthClient("http://example.test/")
+
+    assert client.base_url == "http://example.test"

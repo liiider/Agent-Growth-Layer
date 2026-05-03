@@ -11,7 +11,7 @@ Call `POST /v1/guidance` with an `agent_id`, `domain`, `intent`, `context`, and 
 The Python SDK exposes:
 
 ```python
-from sdk.python.agent_growth import AgentGrowthClient
+from agent_growth import AgentGrowthClient
 
 client = AgentGrowthClient("http://localhost:8000")
 guidance = client.get_guidance(

@@ -1,8 +1,7 @@
 from typing import Any
 
 import httpx
-
-from sdk.python.agent_growth.guidance import Guidance
+from agent_growth.guidance import Guidance
 
 
 class AgentGrowthClient:

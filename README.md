@@ -66,7 +66,7 @@ python -m pip install -e ".[dev]"
 Use the SDK:
 
 ```python
-from sdk.python.agent_growth import AgentGrowthClient
+from agent_growth import AgentGrowthClient
 
 client = AgentGrowthClient("http://localhost:8000")
 guidance = client.get_guidance(
@@ -101,6 +101,7 @@ uvicorn server.main:app --reload
 ## Seed Skills
 
 Seed skills live in `templates/seed_skills/` and are loaded from YAML at runtime.
+The stable V0.1 schema is documented in `docs/seed-skill-schema.md`.
 
 Included seed skills:
 
@@ -142,6 +143,10 @@ tests/                    API and SDK tests
 
 - V0.2: Experience API, cognition extraction, feedback, candidate guidance, prompt import, JavaScript SDK minimum version.
 - V0.3: Skill builder, manual exams, LLM judge, skill status flow, audit trail, verified guidance.
+
+## Stage Notes
+
+Implementation handoff notes live in `docs/handoffs/`.
 
 ## Boundaries
 

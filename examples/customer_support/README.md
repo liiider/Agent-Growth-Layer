@@ -3,7 +3,7 @@
 This example uses cold-start guidance for a refund question.
 
 ```python
-from sdk.python.agent_growth import AgentGrowthClient
+from agent_growth import AgentGrowthClient
 
 client = AgentGrowthClient("http://localhost:8000")
 guidance = client.get_guidance(
