@@ -130,6 +130,27 @@ python -m compileall server sdk
 uvicorn server.main:app --reload
 ```
 
+## Local MVP Verification
+
+Run the full local MVP chain:
+
+```powershell
+.\scripts\verify_local_mvp.ps1
+```
+
+This starts the API locally, then verifies:
+
+- health
+- seed guidance
+- experience learning
+- cognition extraction
+- feedback
+- prompt import
+- skill build
+- exam promotion
+- audit
+- verified guidance
+
 ## API
 
 - `POST /v1/guidance`
