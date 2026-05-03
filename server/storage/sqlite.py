@@ -104,6 +104,47 @@ def initialize_database(database_url: str) -> None:
             )
             """
         )
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS skills (
+              id TEXT PRIMARY KEY,
+              agent_id TEXT NOT NULL,
+              name TEXT NOT NULL,
+              domain TEXT NOT NULL,
+              intent TEXT NOT NULL,
+              status TEXT NOT NULL,
+              weight TEXT NOT NULL,
+              confidence REAL NOT NULL,
+              version TEXT NOT NULL,
+              procedure TEXT NOT NULL,
+              constraints TEXT NOT NULL,
+              error_patterns TEXT NOT NULL,
+              negative_examples TEXT NOT NULL,
+              tool_policy TEXT NOT NULL,
+              output_guidance TEXT NOT NULL,
+              evidence_refs TEXT NOT NULL,
+              exam_score REAL,
+              created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS exams (
+              id TEXT PRIMARY KEY,
+              skill_id TEXT NOT NULL,
+              evaluator TEXT NOT NULL,
+              score REAL NOT NULL,
+              passed INTEGER NOT NULL,
+              failures TEXT NOT NULL,
+              status_before TEXT NOT NULL,
+              status_after TEXT NOT NULL,
+              created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              FOREIGN KEY(skill_id) REFERENCES skills(id)
+            )
+            """
+        )
 
 
 def sqlite_path_from_url(database_url: str) -> Path:

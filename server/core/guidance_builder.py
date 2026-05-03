@@ -2,7 +2,11 @@ from uuid import uuid4
 
 from server.core.seed_skills import SeedSkillRepository
 from server.models.guidance import GuidancePayload, GuidanceRequest, GuidanceResponse
-from server.storage.repositories import CognitionRepository, ImportedSkillRepository
+from server.storage.repositories import (
+    CognitionRepository,
+    ImportedSkillRepository,
+    SkillRepository,
+)
 
 
 class GuidanceBuilder:
@@ -11,13 +15,16 @@ class GuidanceBuilder:
         seed_skill_repository: SeedSkillRepository,
         cognition_repository: CognitionRepository | None = None,
         imported_skill_repository: ImportedSkillRepository | None = None,
+        skill_repository: SkillRepository | None = None,
     ) -> None:
         self.seed_skill_repository = seed_skill_repository
         self.cognition_repository = cognition_repository
         self.imported_skill_repository = imported_skill_repository
+        self.skill_repository = skill_repository
 
     def build(self, request: GuidanceRequest) -> GuidanceResponse:
         seed_skills = self._select_seed_skills(request)
+        verified_skills = self._select_verified_skills(request)
         candidate_skills = self._select_candidate_guidance(request)
         output_guidance = self._merge_output_guidance(seed_skills)
         tool_policy = self._merge_tool_policy(seed_skills)
@@ -28,6 +35,7 @@ class GuidanceBuilder:
             domain=request.domain,
             intent=request.intent,
             guidance=GuidancePayload(
+                verified_skills=verified_skills,
                 candidate_skills=candidate_skills,
                 seed_skills=seed_skills,
                 output_guidance=output_guidance,
@@ -106,6 +114,31 @@ class GuidanceBuilder:
                 "evidence_refs": skill.evidence_refs,
             }
             for skill in imported_skills
+        ]
+
+    def _select_verified_skills(self, request: GuidanceRequest) -> list[dict]:
+        if self.skill_repository is None:
+            return []
+
+        skills = self.skill_repository.list(
+            agent_id=request.agent_id,
+            domain=request.domain,
+            intent=request.intent,
+            status="verified",
+            limit=10,
+        )
+        return [
+            {
+                "id": skill.id,
+                "name": skill.name,
+                "status": skill.status,
+                "exam_score": skill.exam_score,
+                "instructions": skill.procedure,
+                "constraints": skill.constraints,
+                "evidence_refs": skill.evidence_refs,
+                "latest_exam": skill.latest_exam.model_dump() if skill.latest_exam else None,
+            }
+            for skill in skills
         ]
 
 

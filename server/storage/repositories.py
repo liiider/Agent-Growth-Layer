@@ -5,6 +5,7 @@ from server.models.cognition import CognitionCandidate, CognitionRead
 from server.models.experience import ExperienceCreate, ExperienceRead
 from server.models.feedback import FeedbackCreate
 from server.models.imported_skill import ImportedSkill
+from server.models.skill import LatestExam, SkillBuildRequest, SkillRead, SkillUpdateRequest
 from server.storage.sqlite import connect, decode_json, encode_json, initialize_database
 
 
@@ -247,6 +248,251 @@ class ImportedSkillRepository:
         return [_imported_skill_from_row(row) for row in rows]
 
 
+class SkillRepository:
+    def __init__(self, database_url: str) -> None:
+        self.database_url = database_url
+        initialize_database(database_url)
+
+    def build_from_cognitions(
+        self,
+        request: SkillBuildRequest,
+        cognitions: list[CognitionRead],
+    ) -> SkillRead:
+        skill_id = f"skill_{uuid4().hex[:12]}"
+        procedure = [cognition.content for cognition in cognitions]
+        constraints = [
+            cognition.content
+            for cognition in cognitions
+            if cognition.type in {"constraint", "error_pattern"}
+        ]
+        error_patterns = [
+            cognition.content for cognition in cognitions if cognition.type == "error_pattern"
+        ]
+        evidence_refs = [cognition.id for cognition in cognitions]
+        weight = _max_weight([cognition.weight for cognition in cognitions])
+        confidence = min(
+            0.99,
+            sum(cognition.confidence for cognition in cognitions) / len(cognitions),
+        )
+
+        with connect(self.database_url) as connection:
+            connection.execute(
+                """
+                INSERT INTO skills (
+                  id, agent_id, name, domain, intent, status, weight, confidence,
+                  version, procedure, constraints, error_patterns, negative_examples,
+                  tool_policy, output_guidance, evidence_refs
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    skill_id,
+                    request.agent_id,
+                    request.name,
+                    request.domain,
+                    request.intent,
+                    "candidate",
+                    weight,
+                    confidence,
+                    "0.1.0",
+                    encode_json(procedure),
+                    encode_json(constraints),
+                    encode_json(error_patterns),
+                    encode_json([]),
+                    encode_json([]),
+                    encode_json([]),
+                    encode_json(evidence_refs),
+                ),
+            )
+        skill = self.get(skill_id)
+        if skill is None:
+            msg = "Failed to create skill."
+            raise RuntimeError(msg)
+        return skill
+
+    def list(
+        self,
+        *,
+        agent_id: str | None = None,
+        domain: str | None = None,
+        intent: str | None = None,
+        status: str | None = None,
+        limit: int = 50,
+    ) -> list[SkillRead]:
+        clauses: list[str] = []
+        values: list[Any] = []
+        for field, value in {
+            "agent_id": agent_id,
+            "domain": domain,
+            "intent": intent,
+            "status": status,
+        }.items():
+            if value is not None:
+                clauses.append(f"{field} = ?")
+                values.append(value)
+
+        where = f"WHERE {' AND '.join(clauses)}" if clauses else ""
+        values.append(limit)
+        with connect(self.database_url) as connection:
+            rows = connection.execute(
+                f"SELECT * FROM skills {where} ORDER BY created_at DESC LIMIT ?",
+                values,
+            ).fetchall()
+        return [self._skill_from_row(row) for row in rows]
+
+    def get(self, skill_id: str) -> SkillRead | None:
+        with connect(self.database_url) as connection:
+            row = connection.execute(
+                "SELECT * FROM skills WHERE id = ?",
+                (skill_id,),
+            ).fetchone()
+        return self._skill_from_row(row) if row else None
+
+    def update(self, skill_id: str, request: SkillUpdateRequest) -> SkillRead | None:
+        skill = self.get(skill_id)
+        if skill is None:
+            return None
+
+        with connect(self.database_url) as connection:
+            procedure = (
+                request.procedure
+                if request.procedure is not None
+                else skill.procedure
+            )
+            connection.execute(
+                """
+                UPDATE skills
+                SET name = ?, procedure = ?, constraints = ?,
+                    output_guidance = ?, updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+                """,
+                (
+                    request.name or skill.name,
+                    encode_json(procedure),
+                    encode_json(
+                        request.constraints
+                        if request.constraints is not None
+                        else skill.constraints
+                    ),
+                    encode_json(
+                        request.output_guidance
+                        if request.output_guidance is not None
+                        else skill.output_guidance
+                    ),
+                    skill_id,
+                ),
+            )
+        return self.get(skill_id)
+
+    def update_status(
+        self,
+        skill_id: str,
+        status: str,
+        *,
+        exam_score: float | None = None,
+    ) -> SkillRead | None:
+        with connect(self.database_url) as connection:
+            connection.execute(
+                """
+                UPDATE skills
+                SET status = ?, exam_score = COALESCE(?, exam_score),
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+                """,
+                (status, exam_score, skill_id),
+            )
+        return self.get(skill_id)
+
+    def _skill_from_row(self, row: Any) -> SkillRead:
+        latest_exam = self._latest_exam(row["id"])
+        return SkillRead(
+            id=row["id"],
+            agent_id=row["agent_id"],
+            name=row["name"],
+            domain=row["domain"],
+            intent=row["intent"],
+            status=row["status"],
+            weight=row["weight"],
+            confidence=row["confidence"],
+            version=row["version"],
+            procedure=decode_json(row["procedure"]) or [],
+            constraints=decode_json(row["constraints"]) or [],
+            error_patterns=decode_json(row["error_patterns"]) or [],
+            negative_examples=decode_json(row["negative_examples"]) or [],
+            tool_policy=decode_json(row["tool_policy"]) or [],
+            output_guidance=decode_json(row["output_guidance"]) or [],
+            evidence_refs=decode_json(row["evidence_refs"]) or [],
+            exam_score=row["exam_score"],
+            latest_exam=latest_exam,
+            created_at=row["created_at"],
+            updated_at=row["updated_at"],
+        )
+
+    def _latest_exam(self, skill_id: str) -> LatestExam | None:
+        with connect(self.database_url) as connection:
+            row = connection.execute(
+                """
+                SELECT * FROM exams
+                WHERE skill_id = ?
+                ORDER BY created_at DESC
+                LIMIT 1
+                """,
+                (skill_id,),
+            ).fetchone()
+        if row is None:
+            return None
+        return LatestExam(
+            exam_id=row["id"],
+            evaluator=row["evaluator"],
+            score=row["score"],
+            passed=bool(row["passed"]),
+            status_before=row["status_before"],
+            status_after=row["status_after"],
+            failures=decode_json(row["failures"]) or [],
+            created_at=row["created_at"],
+        )
+
+
+class ExamRepository:
+    def __init__(self, database_url: str) -> None:
+        self.database_url = database_url
+        initialize_database(database_url)
+
+    def create(
+        self,
+        *,
+        skill_id: str,
+        evaluator: str,
+        score: float,
+        passed: bool,
+        failures: list[str],
+        status_before: str,
+        status_after: str,
+    ) -> str:
+        exam_id = f"exam_{uuid4().hex[:12]}"
+        with connect(self.database_url) as connection:
+            connection.execute(
+                """
+                INSERT INTO exams (
+                  id, skill_id, evaluator, score, passed, failures,
+                  status_before, status_after
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    exam_id,
+                    skill_id,
+                    evaluator,
+                    score,
+                    int(passed),
+                    encode_json(failures),
+                    status_before,
+                    status_after,
+                ),
+            )
+        return exam_id
+
+
 def _experience_from_row(row: Any, *, cognition_ids: list[str]) -> ExperienceRead:
     return ExperienceRead(
         id=row["id"],
@@ -300,3 +546,11 @@ def _imported_skill_from_row(row: Any) -> ImportedSkill:
         weight=row["weight"],
         confidence=row["confidence"],
     )
+
+
+def _max_weight(weights: list[str]) -> str:
+    if "high" in weights:
+        return "high"
+    if "medium" in weights:
+        return "medium"
+    return "low"

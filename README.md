@@ -130,6 +130,12 @@ uvicorn server.main:app --reload
 - `GET /v1/cognitions`
 - `GET /v1/cognitions/{id}`
 - `PATCH /v1/cognitions/{id}/status`
+- `POST /v1/skills/build`
+- `GET /v1/skills`
+- `GET /v1/skills/{id}`
+- `PATCH /v1/skills/{id}`
+- `PATCH /v1/skills/{id}/status`
+- `POST /v1/skills/{id}/exam`
 - `GET /health`
 
 See `docs/api.md` for request and response examples.

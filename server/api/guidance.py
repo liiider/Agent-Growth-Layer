@@ -6,7 +6,11 @@ from server.config import Settings, get_settings
 from server.core.guidance_builder import GuidanceBuilder
 from server.core.seed_skills import SeedSkillRepository
 from server.models.guidance import GuidanceRequest, GuidanceResponse
-from server.storage.repositories import CognitionRepository, ImportedSkillRepository
+from server.storage.repositories import (
+    CognitionRepository,
+    ImportedSkillRepository,
+    SkillRepository,
+)
 
 router = APIRouter(prefix="/v1", tags=["guidance"])
 
@@ -15,10 +19,12 @@ def get_guidance_builder(settings: Annotated[Settings, Depends(get_settings)]) -
     seed_skill_repository = SeedSkillRepository(settings.seed_skills_dir)
     cognition_repository = CognitionRepository(settings.database_url)
     imported_skill_repository = ImportedSkillRepository(settings.database_url)
+    skill_repository = SkillRepository(settings.database_url)
     return GuidanceBuilder(
         seed_skill_repository,
         cognition_repository,
         imported_skill_repository,
+        skill_repository,
     )
 
 

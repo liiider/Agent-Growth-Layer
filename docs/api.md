@@ -150,6 +150,90 @@ List supports optional filters:
 - `status`
 - `limit`
 
+## Build Skill
+
+```http
+POST /v1/skills/build
+```
+
+Request:
+
+```json
+{
+  "agent_id": "support_agent",
+  "domain": "customer_support",
+  "intent": "refund_question",
+  "name": "Refund Policy Handling",
+  "cognition_ids": ["cog_..."]
+}
+```
+
+Response:
+
+```json
+{
+  "skill": {
+    "id": "skill_...",
+    "status": "candidate",
+    "weight": "medium",
+    "latest_exam": null
+  }
+}
+```
+
+## Skills
+
+```http
+GET /v1/skills
+GET /v1/skills/{id}
+PATCH /v1/skills/{id}
+PATCH /v1/skills/{id}/status
+```
+
+`GET /v1/skills/{id}` returns `latest_exam`.
+
+## Run Exam
+
+```http
+POST /v1/skills/{skill_id}/exam
+```
+
+Request:
+
+```json
+{
+  "evaluator": "manual_score",
+  "score": 0.9,
+  "cases": [
+    {
+      "input": "I want a refund",
+      "context": {
+        "region": "unknown",
+        "order_status": "unknown"
+      },
+      "expected_behavior": ["check region", "check order status"],
+      "forbidden_behavior": ["promise refund approval"]
+    }
+  ]
+}
+```
+
+Response:
+
+```json
+{
+  "exam_id": "exam_...",
+  "skill_id": "skill_...",
+  "previous_status": "candidate",
+  "score": 0.9,
+  "passed": true,
+  "failures": [],
+  "new_status": "verified"
+}
+```
+
+Passing exams promote the skill into verified guidance. Failed exams set the skill to `failed`.
+
 ## SDK Prompt Injection
 
 ```python
