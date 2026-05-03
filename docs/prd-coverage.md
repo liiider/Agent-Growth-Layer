@@ -49,19 +49,26 @@ V0.3:
 - Coding agent example notes
 - Enterprise QA example notes
 - JavaScript SDK skill/exam source
+- BYOK OpenAI-compatible LLM adapter seam for extraction, prompt import, and `llm_judge`
 
-## Implemented With Deterministic Local Stubs
+## Implemented With Deterministic Local Defaults
 
-- Cognition extraction uses a deterministic local extractor instead of LLM extraction.
-- Prompt import uses deterministic sentence parsing instead of LLM prompt parsing.
-- Exam supports deterministic manual score; `llm_judge` is accepted as an evaluator label but does not call an LLM.
+- Cognition extraction uses deterministic local extraction unless `AGL_LLM_PROVIDER=openai_compatible`.
+- Prompt import uses deterministic sentence parsing unless `AGL_LLM_PROVIDER=openai_compatible`.
+- Exam supports deterministic manual score. `llm_judge` calls the configured BYOK client only when no manual score is supplied.
 
 These choices preserve local-first operation and stable tests.
 
+## Verified In This Environment
+
+- `docker compose up --build -d`
+- Docker container health check
+- Full Docker-backed local MVP verification chain
+- JavaScript SDK TypeScript build through `npm.cmd run build`
+
 ## Not Yet Fully Verified In This Environment
 
-- `docker compose up --build`: Docker Desktop daemon is not running.
-- JavaScript SDK TypeScript build: `tsc` is not installed.
+- Real external GLM/OpenAI-compatible API behavior. This requires a user-provided temporary API key.
 
 ## Deliberately Out Of MVP Scope
 

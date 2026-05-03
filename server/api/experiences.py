@@ -4,6 +4,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 
 from server.config import Settings, get_settings
 from server.core.extractor import CognitionExtractor
+from server.core.llm import build_chat_client
 from server.models.experience import (
     ExperienceCreate,
     ExperienceCreateResponse,
@@ -28,10 +29,15 @@ def get_cognition_repository(
 
 
 def get_extractor(
+    settings: Annotated[Settings, Depends(get_settings)],
     experience_repository: Annotated[ExperienceRepository, Depends(get_experience_repository)],
     cognition_repository: Annotated[CognitionRepository, Depends(get_cognition_repository)],
 ) -> CognitionExtractor:
-    return CognitionExtractor(experience_repository, cognition_repository)
+    return CognitionExtractor(
+        experience_repository,
+        cognition_repository,
+        chat_client=build_chat_client(settings),
+    )
 
 
 @router.post("", response_model=ExperienceCreateResponse)

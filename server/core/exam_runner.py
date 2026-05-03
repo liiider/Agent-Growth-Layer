@@ -1,3 +1,4 @@
+from server.core.llm import ChatClient
 from server.models.exam import ExamRequest, ExamResponse
 from server.models.skill import SkillRead
 from server.storage.repositories import ExamRepository, SkillRepository
@@ -10,15 +11,16 @@ class ExamRunner:
         self,
         skill_repository: SkillRepository,
         exam_repository: ExamRepository,
+        chat_client: ChatClient | None = None,
     ) -> None:
         self.skill_repository = skill_repository
         self.exam_repository = exam_repository
+        self.chat_client = chat_client
 
     def run(self, skill: SkillRead, request: ExamRequest) -> ExamResponse:
         previous_status = skill.status
         self.skill_repository.update_status(skill.id, "testing")
-        score = request.score if request.score is not None else _score_from_cases(request)
-        failures = _failures_from_score(score)
+        score, failures = self._score(skill, request)
         passed = score >= PASSING_SCORE
         new_status = "verified" if passed else "failed"
         exam_id = self.exam_repository.create(
@@ -40,6 +42,39 @@ class ExamRunner:
             failures=failures,
             new_status=new_status,
         )
+
+    def _score(self, skill: SkillRead, request: ExamRequest) -> tuple[float, list[str]]:
+        if request.score is not None:
+            score = request.score
+            return score, _failures_from_score(score)
+        if request.evaluator == "llm_judge" and self.chat_client is not None:
+            return self._score_with_llm(skill, request)
+        score = _score_from_cases(request)
+        return score, _failures_from_score(score)
+
+    def _score_with_llm(self, skill: SkillRead, request: ExamRequest) -> tuple[float, list[str]]:
+        payload = self.chat_client.complete_json(
+            [
+                {
+                    "role": "system",
+                    "content": (
+                        "Judge whether an Agent Growth Layer skill satisfies the exam cases. "
+                        "Return JSON with keys: score and failures."
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": skill.model_dump_json() + "\n" + request.model_dump_json(),
+                },
+            ]
+        )
+        score = float(payload.get("score", 0))
+        failures = payload.get("failures", [])
+        if not isinstance(failures, list):
+            failures = []
+        return max(0.0, min(1.0, score)), [
+            failure for failure in failures if isinstance(failure, str) and failure.strip()
+        ]
 
 
 def _score_from_cases(request: ExamRequest) -> float:

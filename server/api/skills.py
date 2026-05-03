@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 
 from server.config import Settings, get_settings
 from server.core.exam_runner import ExamRunner
+from server.core.llm import build_chat_client
 from server.core.prompt_importer import PromptImporter
 from server.models.exam import ExamRequest, ExamResponse
 from server.models.imported_skill import PromptImportRequest, PromptImportResponse
@@ -49,16 +50,22 @@ def get_exam_repository(
 
 
 def get_prompt_importer(
+    settings: Annotated[Settings, Depends(get_settings)],
     repository: Annotated[ImportedSkillRepository, Depends(get_imported_skill_repository)],
 ) -> PromptImporter:
-    return PromptImporter(repository)
+    return PromptImporter(repository, chat_client=build_chat_client(settings))
 
 
 def get_exam_runner(
+    settings: Annotated[Settings, Depends(get_settings)],
     skill_repository: Annotated[SkillRepository, Depends(get_skill_repository)],
     exam_repository: Annotated[ExamRepository, Depends(get_exam_repository)],
 ) -> ExamRunner:
-    return ExamRunner(skill_repository, exam_repository)
+    return ExamRunner(
+        skill_repository,
+        exam_repository,
+        chat_client=build_chat_client(settings),
+    )
 
 
 @router.post("/import_prompt", response_model=PromptImportResponse)

@@ -39,7 +39,7 @@ This repository currently implements the PRD's V0.1 through V0.3 core milestones
 - `guidance.to_prompt()`
 - Docker Compose local startup
 - Customer support, coding agent, and enterprise QA examples
-- OpenAI-compatible LLM configuration notes
+- BYOK OpenAI-compatible LLM adapter for extraction, prompt import, and `llm_judge`
 
 ## Quickstart
 
@@ -196,12 +196,15 @@ Copy `.env.example` to `.env` when you need local overrides.
 ```env
 AGL_DATABASE_URL=sqlite:///./data/agent_growth_layer.db
 AGL_SEED_SKILLS_DIR=./templates/seed_skills
-OPENAI_BASE_URL=https://api.openai.com/v1
-OPENAI_API_KEY=
-OPENAI_MODEL=gpt-4.1-mini
+AGL_LLM_PROVIDER=deterministic
+AGL_LLM_BASE_URL=
+AGL_LLM_API_KEY=
+AGL_LLM_MODEL=
+AGL_LLM_TIMEOUT_SECONDS=30
 ```
 
-V0.1 does not call an LLM on the main guidance path. The OpenAI-compatible fields are reserved for later extraction and prompt import work.
+`POST /v1/guidance` does not call an LLM. Optional BYOK LLM calls are limited to
+experience extraction, prompt import, and `llm_judge` exams. See `docs/llm-config.md`.
 
 ## Project Layout
 
@@ -218,9 +221,7 @@ tests/                    API and SDK tests
 
 ## Roadmap
 
-- LLM-backed extraction, prompt import, and judge adapters behind deterministic test seams.
-- TypeScript build verification once dependencies are installed.
-- Docker runtime verification once Docker Desktop is available.
+- Real-provider GLM/OpenAI-compatible validation once the user supplies a temporary local key.
 - Append-only audit event log.
 
 ## Stage Notes

@@ -10,6 +10,11 @@ class Settings(BaseSettings):
 
     database_url: str = "sqlite:///./data/agent_growth_layer.db"
     seed_skills_dir: Path = Field(default=Path("./templates/seed_skills"))
+    llm_provider: str = "deterministic"
+    llm_base_url: str = ""
+    llm_api_key: str = ""
+    llm_model: str = ""
+    llm_timeout_seconds: float = 30
 
 
 @lru_cache
