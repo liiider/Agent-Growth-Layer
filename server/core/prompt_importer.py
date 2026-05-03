@@ -48,7 +48,11 @@ class PromptImporter:
                     "role": "system",
                     "content": (
                         "Convert a developer prompt into one reusable Agent Growth Layer skill. "
-                        "Return JSON with keys: name, procedure, constraints, confidence, weight."
+                        "Return json with keys: name, procedure, constraints, confidence, weight. "
+                        "procedure and constraints must be string arrays. weight must be one of: "
+                        "low, medium, high. Example json: {\"name\":\"Refund Guardrails\","
+                        "\"procedure\":[\"Check order status\"],\"constraints\":[\"Never promise "
+                        "approval\"],\"confidence\":0.8,\"weight\":\"medium\"}"
                     ),
                 },
                 {"role": "user", "content": request.model_dump_json()},
@@ -64,8 +68,8 @@ class PromptImporter:
             procedure=_string_list(payload.get("procedure")) or _extract_procedure(request.prompt),
             constraints=_string_list(payload.get("constraints")),
             evidence_refs=[import_id],
-            weight=str(payload.get("weight") or "medium"),
-            confidence=float(payload.get("confidence") or 0.7),
+            weight=_normalize_weight(payload.get("weight")),
+            confidence=_normalize_confidence(payload.get("confidence")),
         )
 
 
@@ -116,3 +120,25 @@ def _string_list(value: object) -> list[str]:
     if not isinstance(value, list):
         return []
     return [item for item in value if isinstance(item, str) and item.strip()]
+
+
+def _normalize_confidence(value: object) -> float:
+    try:
+        confidence = float(value)
+    except (TypeError, ValueError):
+        return 0.7
+    return max(0.0, min(1.0, confidence))
+
+
+def _normalize_weight(value: object) -> str:
+    if isinstance(value, str) and value in {"low", "medium", "high"}:
+        return value
+    try:
+        numeric = float(value)
+    except (TypeError, ValueError):
+        return "medium"
+    if numeric >= 0.75:
+        return "high"
+    if numeric >= 0.4:
+        return "medium"
+    return "low"

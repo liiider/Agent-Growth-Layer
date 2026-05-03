@@ -104,6 +104,41 @@ def test_experience_extraction_can_use_llm_client(monkeypatch: pytest.MonkeyPatc
     assert fake_client.calls
 
 
+def test_experience_extraction_normalizes_provider_schema_variants(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fake_client = FakeChatClient(
+        {
+            "type": "check",
+            "content": "Check refund facts before answering.",
+            "confidence": "0.84",
+            "weight": 0.8,
+        }
+    )
+    monkeypatch.setattr(experiences_api, "build_chat_client", lambda settings: fake_client)
+    client = TestClient(app)
+
+    experience_id = client.post(
+        "/v1/experiences",
+        json={
+            "agent_id": "support_agent",
+            "domain": "customer_support",
+            "intent": "refund_question",
+            "user_input": "Refund?",
+            "agent_output": "No refund.",
+            "feedback": "Need better policy checks.",
+            "result_status": "corrected",
+            "risk_level": "medium",
+        },
+    ).json()["experience_id"]
+    experience = client.get(f"/v1/experiences/{experience_id}").json()
+    cognition = client.get(f"/v1/cognitions/{experience['cognition_ids'][0]}").json()
+
+    assert cognition["type"] == "rule"
+    assert cognition["confidence"] == 0.84
+    assert cognition["weight"] == "high"
+
+
 def test_prompt_import_can_use_llm_client(monkeypatch: pytest.MonkeyPatch) -> None:
     fake_client = FakeChatClient(
         {

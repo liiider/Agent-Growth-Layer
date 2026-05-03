@@ -67,10 +67,11 @@ These choices preserve local-first operation and stable tests.
 - Docker container health check
 - Full Docker-backed local MVP verification chain
 - JavaScript SDK TypeScript build through `npm.cmd run build`
+- DeepSeek real BYOK LLM validation for extraction, prompt import, and `llm_judge`
 
 ## Not Yet Fully Verified In This Environment
 
-- Real external GLM/OpenAI-compatible API behavior. This requires a user-provided temporary API key.
+- Real external GLM behavior. DeepSeek OpenAI-compatible behavior is verified.
 
 ## Deliberately Out Of MVP Scope
 

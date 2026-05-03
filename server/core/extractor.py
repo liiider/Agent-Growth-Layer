@@ -7,6 +7,19 @@ from server.models.cognition import CognitionCandidate
 from server.models.experience import ExperienceRead
 from server.storage.repositories import CognitionRepository, ExperienceRepository
 
+COGNITION_TYPES = {
+    "fact",
+    "preference",
+    "rule",
+    "procedure",
+    "constraint",
+    "error_pattern",
+    "tool_usage",
+    "communication_style",
+    "decision_pattern",
+    "negative_example",
+}
+
 
 class CognitionExtractor:
     def __init__(
@@ -49,7 +62,14 @@ class CognitionExtractor:
                     "role": "system",
                     "content": (
                         "Extract one reusable Agent Growth Layer cognition from an agent "
-                        "experience. Return only JSON with keys: type, content, confidence, weight."
+                        "experience. Return only json with keys: type, content, "
+                        "confidence, weight. "
+                        "type must be one of: fact, preference, rule, procedure, constraint, "
+                        "error_pattern, tool_usage, communication_style, decision_pattern, "
+                        "negative_example. weight must be one of: low, medium, high. "
+                        "Example json: {\"type\":\"rule\",\"content\":\"Check order status "
+                        "before answering refund questions.\",\"confidence\":0.8,"
+                        "\"weight\":\"medium\"}"
                     ),
                 },
                 {
@@ -59,7 +79,7 @@ class CognitionExtractor:
             ]
         )
         try:
-            return CognitionCandidate.model_validate(payload)
+            return CognitionCandidate.model_validate(_normalize_candidate_payload(payload))
         except ValidationError as exc:
             raise RuntimeError(
                 "LLM cognition extraction response failed schema validation."
@@ -91,5 +111,37 @@ def _weight_from_risk(risk_level: str) -> str:
     if risk_level == "high":
         return "high"
     if risk_level == "medium":
+        return "medium"
+    return "low"
+
+
+def _normalize_candidate_payload(payload: dict[str, object]) -> dict[str, object]:
+    normalized = dict(payload)
+    cognition_type = normalized.get("type")
+    if not isinstance(cognition_type, str) or cognition_type not in COGNITION_TYPES:
+        normalized["type"] = "rule"
+    normalized["confidence"] = _normalize_confidence(normalized.get("confidence"))
+    normalized["weight"] = _normalize_weight(normalized.get("weight"))
+    return normalized
+
+
+def _normalize_confidence(value: object) -> float:
+    try:
+        confidence = float(value)
+    except (TypeError, ValueError):
+        return 0.7
+    return max(0.0, min(1.0, confidence))
+
+
+def _normalize_weight(value: object) -> str:
+    if isinstance(value, str) and value in {"low", "medium", "high"}:
+        return value
+    try:
+        numeric = float(value)
+    except (TypeError, ValueError):
+        return "medium"
+    if numeric >= 0.75:
+        return "high"
+    if numeric >= 0.4:
         return "medium"
     return "low"

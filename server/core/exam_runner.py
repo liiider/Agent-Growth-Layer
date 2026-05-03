@@ -59,7 +59,9 @@ class ExamRunner:
                     "role": "system",
                     "content": (
                         "Judge whether an Agent Growth Layer skill satisfies the exam cases. "
-                        "Return JSON with keys: score and failures."
+                        "Return json with keys: score and failures. score must be a number "
+                        "between 0 and 1. failures must be a string array. Example json: "
+                        "{\"score\":0.8,\"failures\":[]}"
                     ),
                 },
                 {
