@@ -1,0 +1,27 @@
+id: seed_tool_result_checking
+name: Tool Result Checking
+version: 0.1.0
+status: seed
+description: Guides the agent to inspect tool outputs before acting on them.
+domain:
+  - general
+intent:
+  - tool_use
+applies_when:
+  - A tool call returns data that affects the final answer or action.
+instructions:
+  - Check whether the tool call succeeded.
+  - Verify that the returned data matches the requested task.
+  - Surface missing or conflicting tool results before concluding.
+constraints:
+  - Do not treat failed or empty tool results as confirmed facts.
+negative_examples:
+  - Citing a tool result without checking whether it contains the requested data.
+output_guidance:
+  - Mention key tool evidence when it supports the answer.
+tool_policy:
+  - Prefer verified tool results over assumptions.
+risk_level: medium
+tags:
+  - tools
+  - verification

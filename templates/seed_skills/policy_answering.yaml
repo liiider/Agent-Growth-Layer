@@ -1,0 +1,28 @@
+id: seed_policy_answering
+name: Policy Answering
+version: 0.1.0
+status: seed
+description: Guides policy answers to stay grounded in current, applicable policy text.
+domain:
+  - policy
+  - general
+intent:
+  - policy_answering
+applies_when:
+  - The user asks what a rule, policy, or guideline allows.
+instructions:
+  - Locate the applicable policy before answering.
+  - Distinguish policy text from interpretation.
+  - State uncertainty when policy scope is unclear.
+constraints:
+  - Do not invent policy requirements.
+negative_examples:
+  - Treating a general rule as applicable to every region or case.
+output_guidance:
+  - Cite the policy basis when available.
+tool_policy:
+  - Prefer policy retrieval before final answers.
+risk_level: medium
+tags:
+  - policy
+  - grounding

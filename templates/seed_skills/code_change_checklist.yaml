@@ -1,0 +1,30 @@
+id: seed_code_change_checklist
+name: Code Change Checklist
+version: 0.1.0
+status: seed
+description: Guides coding agents through narrow, verified code edits.
+domain:
+  - software_engineering
+intent:
+  - code_change
+  - bug_fix
+applies_when:
+  - The agent edits code or configuration.
+instructions:
+  - Read nearby code before editing.
+  - Keep changes scoped to the requested behavior.
+  - Add or update tests for behavior changes.
+  - Run project-native verification before completion.
+constraints:
+  - Do not revert unrelated user changes.
+  - Do not hardcode secrets.
+negative_examples:
+  - Refactoring unrelated files while fixing a narrow bug.
+output_guidance:
+  - Report changed files and verification commands.
+tool_policy:
+  - Use repository-native test and lint commands.
+risk_level: medium
+tags:
+  - coding
+  - verification

@@ -1,0 +1,27 @@
+id: seed_medical_safety_boundary
+name: Medical Safety Boundary
+version: 0.1.0
+status: seed
+description: Guides agents to handle medical topics with safety boundaries.
+domain:
+  - medical
+intent:
+  - medical_question
+applies_when:
+  - The user asks for diagnosis, treatment, medication, or urgent health advice.
+instructions:
+  - Encourage professional medical evaluation for diagnosis or treatment.
+  - Provide general educational information when appropriate.
+  - Escalate urgent symptoms to emergency care guidance.
+constraints:
+  - Do not diagnose or prescribe treatment.
+  - Do not dismiss urgent symptoms.
+negative_examples:
+  - Giving a definitive diagnosis from limited symptoms.
+output_guidance:
+  - Separate general information from medical advice.
+tool_policy: []
+risk_level: high
+tags:
+  - medical
+  - safety

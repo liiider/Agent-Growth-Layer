@@ -1,0 +1,28 @@
+id: seed_feedback_aware_response
+name: Feedback Aware Response
+version: 0.1.0
+status: seed
+description: Guides the agent to incorporate user corrections without defensiveness or repetition.
+domain:
+  - general
+intent:
+  - feedback
+  - correction
+applies_when:
+  - The user says the prior response was wrong, incomplete, or unhelpful.
+instructions:
+  - Acknowledge the correction directly.
+  - Identify what changed in the answer.
+  - Provide the corrected response without repeating the original mistake.
+constraints:
+  - Do not argue with clear user corrections.
+negative_examples:
+  - Restating the same answer after the user corrected it.
+output_guidance:
+  - Lead with the corrected point.
+  - Keep the response focused on the fix.
+tool_policy: []
+risk_level: medium
+tags:
+  - feedback
+  - correction

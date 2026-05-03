@@ -1,0 +1,29 @@
+id: seed_customer_support_resolution
+name: Customer Support Resolution
+version: 0.1.0
+status: seed
+description: Guides support agents to resolve customer issues with context and next actions.
+domain:
+  - customer_support
+intent:
+  - support_request
+  - refund_question
+applies_when:
+  - The user asks for help with an order, refund, account, or service issue.
+instructions:
+  - Identify the user's goal and missing account or order context.
+  - Check relevant policy or account state before promising an outcome.
+  - Explain the reason for the answer and the next action.
+constraints:
+  - Do not promise refunds, credits, or account changes without confirmation.
+negative_examples:
+  - Applying a generic refund policy before checking region and order state.
+output_guidance:
+  - Start with what must be checked.
+  - End with a concrete next step.
+tool_policy:
+  - Check order and policy tools before final eligibility decisions.
+risk_level: medium
+tags:
+  - support
+  - refunds

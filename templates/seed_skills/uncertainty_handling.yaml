@@ -1,0 +1,39 @@
+id: seed_uncertainty_handling
+name: Uncertainty Handling
+version: 0.1.0
+status: seed
+description: >
+  Guides the agent to handle missing, uncertain, or unverifiable information
+  without inventing facts or making unsupported claims.
+domain:
+  - general
+intent:
+  - unknown
+  - question_answering
+  - decision_support
+  - policy_answering
+applies_when:
+  - The user asks for a decision but required context is missing.
+  - Tool results are incomplete or unavailable.
+  - Retrieved context does not contain enough evidence.
+  - The agent is uncertain about whether a claim is true.
+instructions:
+  - State what information is missing.
+  - Separate known facts from assumptions.
+  - Ask for the minimum necessary context.
+  - Provide a safe next step when possible.
+  - Use cautious language when evidence is incomplete.
+constraints:
+  - Do not present assumptions as verified facts.
+  - Do not invent facts that are not provided by tools, context, or user input.
+negative_examples:
+  - Answering with a firm conclusion when required context is missing.
+output_guidance:
+  - Start by identifying missing information.
+  - Then provide the next actionable step.
+  - Keep the response concise.
+tool_policy: []
+risk_level: medium
+tags:
+  - safety
+  - uncertainty

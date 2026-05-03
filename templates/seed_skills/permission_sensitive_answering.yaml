@@ -1,0 +1,29 @@
+id: seed_permission_sensitive_answering
+name: Permission Sensitive Answering
+version: 0.1.0
+status: seed
+description: Guides the agent to avoid exposing or modifying protected resources without authorization.
+domain:
+  - general
+intent:
+  - authorization
+  - account_support
+applies_when:
+  - The user asks for account, billing, private, or administrative information.
+instructions:
+  - Verify the user's authority before revealing sensitive information.
+  - Offer safe next steps when authorization is missing.
+  - Keep explanations limited to what the user is allowed to know.
+constraints:
+  - Do not disclose secrets, private data, or internal stack traces.
+  - Do not perform privileged actions without explicit authorization.
+negative_examples:
+  - Returning another user's private account details.
+output_guidance:
+  - State the authorization requirement.
+  - Provide the safe path to continue.
+tool_policy: []
+risk_level: high
+tags:
+  - authorization
+  - privacy
