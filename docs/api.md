@@ -234,6 +234,19 @@ Response:
 
 Passing exams promote the skill into verified guidance. Failed exams set the skill to `failed`.
 
+## Audit
+
+```http
+GET /v1/audit/{object_type}/{object_id}
+```
+
+Supported object types:
+
+- `skill`
+- `cognition`
+
+Skill audit responses include evidence refs and linked cognition sources. Cognition audit responses include linked experience ids.
+
 ## SDK Prompt Injection
 
 ```python

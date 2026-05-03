@@ -136,6 +136,7 @@ uvicorn server.main:app --reload
 - `PATCH /v1/skills/{id}`
 - `PATCH /v1/skills/{id}/status`
 - `POST /v1/skills/{id}/exam`
+- `GET /v1/audit/{object_type}/{object_id}`
 - `GET /health`
 
 See `docs/api.md` for request and response examples.
@@ -178,6 +179,8 @@ sdk/python/agent_growth/  Python SDK
 templates/seed_skills/    Built-in seed skill YAML files
 docs/                     Quickstart and LLM configuration notes
 examples/customer_support Customer support integration example
+examples/coding_agent     Coding-agent skill promotion example
+examples/enterprise_qa    Enterprise QA verification example
 tests/                    API and SDK tests
 ```
 
