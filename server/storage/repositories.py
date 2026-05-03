@@ -3,6 +3,8 @@ from uuid import uuid4
 
 from server.models.cognition import CognitionCandidate, CognitionRead
 from server.models.experience import ExperienceCreate, ExperienceRead
+from server.models.feedback import FeedbackCreate
+from server.models.imported_skill import ImportedSkill
 from server.storage.sqlite import connect, decode_json, encode_json, initialize_database
 
 
@@ -169,6 +171,82 @@ class CognitionRepository:
         return self.get(cognition_id)
 
 
+class FeedbackRepository:
+    def __init__(self, database_url: str) -> None:
+        self.database_url = database_url
+        initialize_database(database_url)
+
+    def create(self, request: FeedbackCreate) -> str:
+        feedback_id = f"fb_{uuid4().hex[:12]}"
+        with connect(self.database_url) as connection:
+            connection.execute(
+                """
+                INSERT INTO feedback (id, experience_id, feedback_type, content, score)
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (
+                    feedback_id,
+                    request.experience_id,
+                    request.feedback_type,
+                    request.content,
+                    request.score,
+                ),
+            )
+        return feedback_id
+
+
+class ImportedSkillRepository:
+    def __init__(self, database_url: str) -> None:
+        self.database_url = database_url
+        initialize_database(database_url)
+
+    def create(self, skill: ImportedSkill, *, import_id: str) -> None:
+        with connect(self.database_url) as connection:
+            connection.execute(
+                """
+                INSERT INTO imported_skills (
+                  id, import_id, agent_id, name, domain, intent, status,
+                  weight, confidence, procedure, constraints, evidence_refs
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    skill.id,
+                    import_id,
+                    skill.agent_id,
+                    skill.name,
+                    skill.domain,
+                    skill.intent,
+                    skill.status,
+                    skill.weight,
+                    skill.confidence,
+                    encode_json(skill.procedure),
+                    encode_json(skill.constraints),
+                    encode_json(skill.evidence_refs),
+                ),
+            )
+
+    def list_candidates(
+        self,
+        *,
+        agent_id: str,
+        domain: str,
+        intent: str,
+        limit: int = 20,
+    ) -> list[ImportedSkill]:
+        with connect(self.database_url) as connection:
+            rows = connection.execute(
+                """
+                SELECT * FROM imported_skills
+                WHERE agent_id = ? AND domain = ? AND intent = ? AND status = 'candidate'
+                ORDER BY created_at DESC
+                LIMIT ?
+                """,
+                (agent_id, domain, intent, limit),
+            ).fetchall()
+        return [_imported_skill_from_row(row) for row in rows]
+
+
 def _experience_from_row(row: Any, *, cognition_ids: list[str]) -> ExperienceRead:
     return ExperienceRead(
         id=row["id"],
@@ -205,4 +283,20 @@ def _cognition_from_row(row: Any) -> CognitionRead:
         evidence_refs=decode_json(row["evidence_refs"]) or [],
         created_at=row["created_at"],
         updated_at=row["updated_at"],
+    )
+
+
+def _imported_skill_from_row(row: Any) -> ImportedSkill:
+    return ImportedSkill(
+        id=row["id"],
+        name=row["name"],
+        status=row["status"],
+        agent_id=row["agent_id"],
+        domain=row["domain"],
+        intent=row["intent"],
+        procedure=decode_json(row["procedure"]) or [],
+        constraints=decode_json(row["constraints"]) or [],
+        evidence_refs=decode_json(row["evidence_refs"]) or [],
+        weight=row["weight"],
+        confidence=row["confidence"],
     )

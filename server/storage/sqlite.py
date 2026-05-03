@@ -71,6 +71,39 @@ def initialize_database(database_url: str) -> None:
             )
             """
         )
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS feedback (
+              id TEXT PRIMARY KEY,
+              experience_id TEXT NOT NULL,
+              feedback_type TEXT NOT NULL,
+              content TEXT NOT NULL,
+              score REAL,
+              created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              FOREIGN KEY(experience_id) REFERENCES experiences(id)
+            )
+            """
+        )
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS imported_skills (
+              id TEXT PRIMARY KEY,
+              import_id TEXT NOT NULL,
+              agent_id TEXT NOT NULL,
+              name TEXT NOT NULL,
+              domain TEXT NOT NULL,
+              intent TEXT NOT NULL,
+              status TEXT NOT NULL,
+              weight TEXT NOT NULL,
+              confidence REAL NOT NULL,
+              procedure TEXT NOT NULL,
+              constraints TEXT NOT NULL,
+              evidence_refs TEXT NOT NULL,
+              created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
 
 
 def sqlite_path_from_url(database_url: str) -> Path:

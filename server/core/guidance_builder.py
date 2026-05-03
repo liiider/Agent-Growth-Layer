@@ -2,7 +2,7 @@ from uuid import uuid4
 
 from server.core.seed_skills import SeedSkillRepository
 from server.models.guidance import GuidancePayload, GuidanceRequest, GuidanceResponse
-from server.storage.repositories import CognitionRepository
+from server.storage.repositories import CognitionRepository, ImportedSkillRepository
 
 
 class GuidanceBuilder:
@@ -10,9 +10,11 @@ class GuidanceBuilder:
         self,
         seed_skill_repository: SeedSkillRepository,
         cognition_repository: CognitionRepository | None = None,
+        imported_skill_repository: ImportedSkillRepository | None = None,
     ) -> None:
         self.seed_skill_repository = seed_skill_repository
         self.cognition_repository = cognition_repository
+        self.imported_skill_repository = imported_skill_repository
 
     def build(self, request: GuidanceRequest) -> GuidanceResponse:
         seed_skills = self._select_seed_skills(request)
@@ -64,7 +66,7 @@ class GuidanceBuilder:
             status="candidate",
             limit=10,
         )
-        return [
+        candidates = [
             {
                 "id": cognition.id,
                 "name": _candidate_name(cognition.content),
@@ -78,6 +80,32 @@ class GuidanceBuilder:
                 "evidence_refs": cognition.evidence_refs,
             }
             for cognition in cognitions
+        ]
+        candidates.extend(self._select_imported_skill_guidance(request))
+        return candidates
+
+    def _select_imported_skill_guidance(self, request: GuidanceRequest) -> list[dict]:
+        if self.imported_skill_repository is None:
+            return []
+
+        imported_skills = self.imported_skill_repository.list_candidates(
+            agent_id=request.agent_id,
+            domain=request.domain,
+            intent=request.intent,
+            limit=10,
+        )
+        return [
+            {
+                "id": skill.id,
+                "name": skill.name,
+                "status": skill.status,
+                "weight": skill.weight,
+                "confidence": skill.confidence,
+                "instructions": skill.procedure,
+                "constraints": skill.constraints,
+                "evidence_refs": skill.evidence_refs,
+            }
+            for skill in imported_skills
         ]
 
 

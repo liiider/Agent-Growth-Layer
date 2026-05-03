@@ -81,6 +81,34 @@ system_prompt = guidance.to_prompt()
 print(system_prompt)
 ```
 
+## JavaScript SDK
+
+The V0.2 JavaScript SDK source lives in `sdk/javascript`.
+
+```ts
+import { AgentGrowthClient } from './src'
+
+const client = new AgentGrowthClient('http://localhost:8000')
+const guidance = await client.guidance.get({
+  agent_id: 'support_agent',
+  domain: 'customer_support',
+  intent: 'refund_question',
+  context: { message: 'Why was my refund rejected?' },
+  risk_level: 'medium',
+})
+
+const result = await client.experiences.create({
+  agent_id: 'support_agent',
+  domain: 'customer_support',
+  intent: 'refund_question',
+  user_input: 'Why was my refund rejected?',
+  agent_output: 'Refunds are not available after seven days.',
+  feedback: 'Must confirm region and order status before applying refund rules.',
+  result_status: 'corrected',
+  risk_level: 'medium',
+})
+```
+
 ## Local Development
 
 ```powershell
