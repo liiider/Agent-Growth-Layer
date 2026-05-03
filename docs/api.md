@@ -281,3 +281,45 @@ result = client.experiences.create(
     risk_level="medium",
 )
 ```
+
+## Python SDK Full MVP Surface
+
+```python
+from agent_growth import AgentGrowthClient
+
+client = AgentGrowthClient("http://localhost:8000", timeout=10)
+
+experience = client.experiences.create(
+    agent_id="support_agent",
+    domain="customer_support",
+    intent="refund_question",
+    user_input="Why was my refund rejected?",
+    agent_output="Refunds are not available after seven days.",
+    feedback="Must confirm region and order status before applying refund rules.",
+    result_status="corrected",
+    risk_level="medium",
+)
+experience_id = experience["experience_id"]
+tracked = client.experiences.get(experience_id)
+cognition_id = tracked["cognition_ids"][0]
+
+client.feedback.create(
+    experience_id=experience_id,
+    feedback_type="human_corrected",
+    content="Also check region-specific policy.",
+    score=0.2,
+)
+
+client.cognitions.update_status(cognition_id, "verified")
+
+skill = client.skills.build(
+    agent_id="support_agent",
+    domain="customer_support",
+    intent="refund_question",
+    name="Refund Policy Handling",
+    cognition_ids=[cognition_id],
+)["skill"]
+
+client.skills.run_exam(skill["id"], score=0.9)
+audit = client.audit.get("skill", skill["id"])
+```

@@ -50,6 +50,8 @@ V0.3:
 - Enterprise QA example notes
 - JavaScript SDK skill/exam source
 - BYOK OpenAI-compatible LLM adapter seam for extraction, prompt import, and `llm_judge`
+- Python SDK V0.1-V0.3 resource surface:
+  guidance, experiences, feedback, cognitions, skills, exams, and audit
 
 ## Implemented With Deterministic Local Defaults
 

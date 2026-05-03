@@ -34,7 +34,7 @@ This repository currently implements the PRD's V0.1 through V0.3 core milestones
 - Manual exam runner
 - Verified guidance
 - Audit API
-- Python SDK foundation
+- Python SDK for guidance, experiences, feedback, cognitions, skills, exams, and audit
 - JavaScript/TypeScript SDK minimum source
 - `guidance.to_prompt()`
 - Docker Compose local startup
@@ -90,6 +90,42 @@ guidance = client.get_guidance(
 
 system_prompt = guidance.to_prompt()
 print(system_prompt)
+```
+
+Use the SDK for the full local MVP loop:
+
+```python
+experience = client.experiences.create(
+    agent_id="support_agent",
+    domain="customer_support",
+    intent="refund_question",
+    user_input="Why was my refund rejected?",
+    agent_output="Refunds are not available after seven days.",
+    feedback="Must confirm region and order status before applying refund rules.",
+    result_status="corrected",
+    risk_level="medium",
+)
+experience_id = experience["experience_id"]
+tracked = client.experiences.get(experience_id)
+cognition_id = tracked["cognition_ids"][0]
+
+client.feedback.create(
+    experience_id=experience_id,
+    feedback_type="human_corrected",
+    content="Also check region-specific policy.",
+    score=0.2,
+)
+
+skill = client.skills.build(
+    agent_id="support_agent",
+    domain="customer_support",
+    intent="refund_question",
+    name="Refund Policy Handling",
+    cognition_ids=[cognition_id],
+)["skill"]
+
+client.skills.run_exam(skill["id"], score=0.9)
+audit = client.audit.get("skill", skill["id"])
 ```
 
 ## JavaScript SDK

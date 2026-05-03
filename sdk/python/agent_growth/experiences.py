@@ -1,12 +1,9 @@
 from typing import Any
 
-import httpx
+from agent_growth.http import HttpResource
 
 
-class ExperiencesClient:
-    def __init__(self, base_url: str) -> None:
-        self.base_url = base_url.rstrip("/")
-
+class ExperiencesClient(HttpResource):
     def create(
         self,
         *,
@@ -22,8 +19,9 @@ class ExperiencesClient:
         risk_level: str = "low",
         metadata: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        response = httpx.post(
-            f"{self.base_url}/v1/experiences",
+        return self.request(
+            "POST",
+            "/v1/experiences",
             json={
                 "agent_id": agent_id,
                 "domain": domain,
@@ -37,7 +35,10 @@ class ExperiencesClient:
                 "risk_level": risk_level,
                 "metadata": metadata or {},
             },
-            timeout=10,
         )
-        response.raise_for_status()
-        return response.json()
+
+    def get(self, experience_id: str) -> dict[str, Any]:
+        return self.request("GET", f"/v1/experiences/{experience_id}")
+
+    def retry_extraction(self, experience_id: str) -> dict[str, Any]:
+        return self.request("POST", f"/v1/experiences/{experience_id}/extract")
