@@ -23,6 +23,7 @@ Implemented the PRD Week 1 / V0.1 local-start baseline:
 - Updated package discovery so `agent_growth` installs from `sdk/python/agent_growth`.
 - Added schema-focused tests for all seed skill templates.
 - Added `docs/seed-skill-schema.md`.
+- Added `docs/architecture/reference-project-lessons.md` to record lessons from Mem0, LangMem, MemAlign, skill registries, and eval-loop systems.
 - Updated README references for schema and handoff notes.
 
 ## Problems Encountered
@@ -123,3 +124,10 @@ Start Week 2 / V0.1 completion:
 - Expand customer support example into a runnable script.
 - Add API docs for guidance response shape.
 - Re-run Docker verification once Docker Desktop is available.
+
+Architecture constraints to preserve:
+
+- No vector database or registry network lookup in V0.1 guidance assembly.
+- No model call in `POST /v1/guidance` for V0.1.
+- Keep extraction/eval work outside the request-critical guidance path.
+- Require evidence and explicit state transitions before candidate guidance becomes verified guidance.
