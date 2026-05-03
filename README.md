@@ -1,5 +1,7 @@
 # Agent Growth Layer
 
+[![CI](https://github.com/liiider/Agent-Growth-Layer/actions/workflows/ci.yml/badge.svg)](https://github.com/liiider/Agent-Growth-Layer/actions/workflows/ci.yml)
+
 Agent Growth Layer gives AI agents runtime guidance that improves from real experience.
 
 Agent Growth Layer is an open-source runtime guidance layer for AI agents. It helps an agent start with reusable seed guidance, then grow toward better behavior from real tasks, user feedback, corrections, and verification.
