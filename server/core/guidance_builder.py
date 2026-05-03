@@ -2,14 +2,21 @@ from uuid import uuid4
 
 from server.core.seed_skills import SeedSkillRepository
 from server.models.guidance import GuidancePayload, GuidanceRequest, GuidanceResponse
+from server.storage.repositories import CognitionRepository
 
 
 class GuidanceBuilder:
-    def __init__(self, seed_skill_repository: SeedSkillRepository) -> None:
+    def __init__(
+        self,
+        seed_skill_repository: SeedSkillRepository,
+        cognition_repository: CognitionRepository | None = None,
+    ) -> None:
         self.seed_skill_repository = seed_skill_repository
+        self.cognition_repository = cognition_repository
 
     def build(self, request: GuidanceRequest) -> GuidanceResponse:
         seed_skills = self._select_seed_skills(request)
+        candidate_skills = self._select_candidate_guidance(request)
         output_guidance = self._merge_output_guidance(seed_skills)
         tool_policy = self._merge_tool_policy(seed_skills)
 
@@ -19,6 +26,7 @@ class GuidanceBuilder:
             domain=request.domain,
             intent=request.intent,
             guidance=GuidancePayload(
+                candidate_skills=candidate_skills,
                 seed_skills=seed_skills,
                 output_guidance=output_guidance,
                 tool_policy=tool_policy,
@@ -45,6 +53,33 @@ class GuidanceBuilder:
         ]
         return domain_matches + general_matches
 
+    def _select_candidate_guidance(self, request: GuidanceRequest) -> list[dict]:
+        if self.cognition_repository is None:
+            return []
+
+        cognitions = self.cognition_repository.list(
+            agent_id=request.agent_id,
+            domain=request.domain,
+            intent=request.intent,
+            status="candidate",
+            limit=10,
+        )
+        return [
+            {
+                "id": cognition.id,
+                "name": _candidate_name(cognition.content),
+                "status": cognition.status,
+                "weight": cognition.weight,
+                "confidence": cognition.confidence,
+                "instructions": [cognition.content],
+                "constraints": [cognition.content]
+                if cognition.type in {"constraint", "error_pattern"}
+                else [],
+                "evidence_refs": cognition.evidence_refs,
+            }
+            for cognition in cognitions
+        ]
+
 
 def _unique(items: object) -> list[str]:
     values: list[str] = []
@@ -52,3 +87,10 @@ def _unique(items: object) -> list[str]:
         if item not in values:
             values.append(item)
     return values
+
+
+def _candidate_name(content: str) -> str:
+    normalized = content.strip().rstrip(".")
+    if len(normalized) <= 64:
+        return normalized
+    return f"{normalized[:61]}..."

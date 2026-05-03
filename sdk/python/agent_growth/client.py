@@ -1,12 +1,14 @@
 from typing import Any
 
 import httpx
+from agent_growth.experiences import ExperiencesClient
 from agent_growth.guidance import Guidance
 
 
 class AgentGrowthClient:
     def __init__(self, base_url: str = "http://localhost:8000") -> None:
         self.base_url = base_url.rstrip("/")
+        self.experiences = ExperiencesClient(self.base_url)
 
     def get_guidance(
         self,

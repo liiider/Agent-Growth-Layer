@@ -96,6 +96,12 @@ uvicorn server.main:app --reload
 - `POST /v1/guidance`
 - `GET /v1/seed-skills`
 - `GET /v1/seed-skills/{id}`
+- `POST /v1/experiences`
+- `GET /v1/experiences/{id}`
+- `POST /v1/experiences/{id}/extract`
+- `GET /v1/cognitions`
+- `GET /v1/cognitions/{id}`
+- `PATCH /v1/cognitions/{id}/status`
 - `GET /health`
 
 See `docs/api.md` for request and response examples.

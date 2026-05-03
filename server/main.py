@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from server.api import guidance, seed_skills
+from server.api import cognitions, experiences, guidance, seed_skills
 from server.config import get_settings
 from server.storage.sqlite import initialize_database
 
@@ -23,6 +23,8 @@ app = FastAPI(
 
 app.include_router(guidance.router)
 app.include_router(seed_skills.router)
+app.include_router(experiences.router)
+app.include_router(cognitions.router)
 
 
 @app.get("/health")

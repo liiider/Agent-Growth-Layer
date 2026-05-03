@@ -35,6 +35,7 @@ def test_sdk_exports_client() -> None:
     client = AgentGrowthClient("http://example.test/")
 
     assert client.base_url == "http://example.test"
+    assert client.experiences.base_url == "http://example.test"
 
 
 def test_guidance_to_prompt_marks_candidate_skills_as_unverified() -> None:
