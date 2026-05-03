@@ -3,5 +3,7 @@ __pycache__/
 .ruff_cache/
 .venv/
 data/
+dist/
+node_modules/
 *.pyc
 .env

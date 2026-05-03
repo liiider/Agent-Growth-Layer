@@ -16,7 +16,7 @@ The project is framework agnostic: it does not orchestrate your agent. It gives 
 
 ## Current Scope
 
-This repository currently implements the PRD's V0.1 "Guidance First" milestone:
+This repository currently implements the PRD's V0.1 through V0.3 core milestones:
 
 - FastAPI service
 - SQLite initialization
@@ -24,10 +24,19 @@ This repository currently implements the PRD's V0.1 "Guidance First" milestone:
 - Seed Skill templates
 - `POST /v1/guidance`
 - `GET /v1/seed-skills`
+- Experience learning
+- Cognition extraction
+- Feedback API
+- Prompt import
+- Skill builder
+- Manual exam runner
+- Verified guidance
+- Audit API
 - Python SDK foundation
+- JavaScript/TypeScript SDK minimum source
 - `guidance.to_prompt()`
 - Docker Compose local startup
-- Customer support example
+- Customer support, coding agent, and enterprise QA examples
 - OpenAI-compatible LLM configuration notes
 
 ## Quickstart
@@ -119,7 +128,7 @@ python -m compileall server sdk
 uvicorn server.main:app --reload
 ```
 
-## V0.1 API
+## API
 
 - `POST /v1/guidance`
 - `GET /v1/seed-skills`
@@ -186,8 +195,10 @@ tests/                    API and SDK tests
 
 ## Roadmap
 
-- V0.2: Experience API, cognition extraction, feedback, candidate guidance, prompt import, JavaScript SDK minimum version.
-- V0.3: Skill builder, manual exams, LLM judge, skill status flow, audit trail, verified guidance.
+- LLM-backed extraction, prompt import, and judge adapters behind deterministic test seams.
+- TypeScript build verification once dependencies are installed.
+- Docker runtime verification once Docker Desktop is available.
+- Append-only audit event log.
 
 ## Stage Notes
 
@@ -195,8 +206,8 @@ Implementation handoff notes live in `docs/handoffs/`.
 
 ## Boundaries
 
-V0.1 intentionally does not implement caching, Redis, experience learning, cognition extraction, skill build, exam, multi-tenancy, permissions, vector storage, or prompt versioning.
+The current MVP intentionally does not implement Redis, a separate worker, vector storage, dashboard, multi-tenant permissions, external registry live lookup, prompt versioning, or `GET /v1/exams/{exam_id}`.
 
 ## License
 
-License is not selected yet.
+MIT
