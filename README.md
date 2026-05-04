@@ -37,6 +37,8 @@ This repository currently implements the PRD's V0.1 through V0.3 core milestones
 - Python SDK for guidance, experiences, feedback, cognitions, skills, exams, and audit
 - JavaScript/TypeScript SDK minimum source
 - `guidance.to_prompt()`
+- Human review gate for cognition and skill promotion
+- Project-level MVP scenario verifier
 - Docker Compose local startup
 - Customer support, coding agent, and enterprise QA examples
 - BYOK OpenAI-compatible LLM adapter for extraction, prompt import, and `llm_judge`
@@ -125,6 +127,13 @@ skill = client.skills.build(
 )["skill"]
 
 client.skills.run_exam(skill["id"], score=0.9)
+client.reviews.create(
+    object_type="skill",
+    object_id=skill["id"],
+    decision="approve",
+    reviewer="project_owner",
+    notes="Passing exam and project owner review approve this skill.",
+)
 audit = client.audit.get("skill", skill["id"])
 ```
 
@@ -204,6 +213,7 @@ This starts the API locally, then verifies:
 - `PATCH /v1/skills/{id}`
 - `PATCH /v1/skills/{id}/status`
 - `POST /v1/skills/{id}/exam`
+- `POST /v1/reviews`
 - `GET /v1/audit/{object_type}/{object_id}`
 - `GET /health`
 

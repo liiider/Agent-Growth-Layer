@@ -6,6 +6,7 @@ from agent_growth.cognitions import CognitionsClient
 from agent_growth.experiences import ExperiencesClient
 from agent_growth.feedback import FeedbackClient
 from agent_growth.guidance import Guidance
+from agent_growth.reviews import ReviewsClient
 from agent_growth.skills import SkillsClient
 
 
@@ -18,6 +19,7 @@ class AgentGrowthClient:
         self.cognitions = CognitionsClient(self.base_url, self.timeout)
         self.skills = SkillsClient(self.base_url, self.timeout)
         self.audit = AuditClient(self.base_url, self.timeout)
+        self.reviews = ReviewsClient(self.base_url, self.timeout)
 
     def get_guidance(
         self,

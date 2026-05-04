@@ -51,6 +51,7 @@ export type ExamRequest = {
   evaluator?: 'manual_score' | 'llm_judge'
   score?: number
   cases?: Array<Record<string, unknown>>
+  require_human_review?: boolean
 }
 
 export class SkillsResource {
@@ -97,15 +98,48 @@ export class SkillsResource {
   }
 }
 
+export type ReviewCreateRequest = {
+  object_type: 'experience' | 'cognition' | 'skill'
+  object_id: string
+  decision: 'approve' | 'reject' | 'revise' | 'quarantine'
+  reviewer: string
+  notes?: string
+  metadata?: Record<string, unknown>
+}
+
+export class ReviewsResource {
+  constructor(private readonly baseUrl: string) {}
+
+  async create(request: ReviewCreateRequest): Promise<Record<string, unknown>> {
+    const response = await fetch(`${this.baseUrl}/v1/reviews`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        notes: '',
+        metadata: {},
+        ...request,
+      }),
+    })
+
+    if (!response.ok) {
+      throw new Error(`Review create failed: ${response.status}`)
+    }
+
+    return response.json()
+  }
+}
+
 export class AgentGrowthClient {
   readonly guidance: GuidanceResource
   readonly experiences: ExperiencesResource
   readonly skills: SkillsResource
+  readonly reviews: ReviewsResource
 
   constructor(baseUrl = 'http://localhost:8000') {
     const normalizedBaseUrl = baseUrl.replace(/\/$/, '')
     this.guidance = new GuidanceResource(normalizedBaseUrl)
     this.experiences = new ExperiencesResource(normalizedBaseUrl)
     this.skills = new SkillsResource(normalizedBaseUrl)
+    this.reviews = new ReviewsResource(normalizedBaseUrl)
   }
 }

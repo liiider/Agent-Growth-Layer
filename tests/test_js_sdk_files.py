@@ -8,6 +8,8 @@ def test_javascript_sdk_exposes_minimum_v02_methods() -> None:
     assert "guidance = new GuidanceResource" in client
     assert "experiences = new ExperiencesResource" in client
     assert "skills = new SkillsResource" in client
+    assert "reviews = new ReviewsResource" in client
+    assert "ReviewCreateRequest" in client
     assert "async get(" in guidance
     assert "async create(" in client
     assert "async build(" in client

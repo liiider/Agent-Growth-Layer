@@ -5,6 +5,7 @@ from server.models.cognition import CognitionCandidate, CognitionRead
 from server.models.experience import ExperienceCreate, ExperienceRead
 from server.models.feedback import FeedbackCreate
 from server.models.imported_skill import ImportedSkill
+from server.models.review import ReviewCreate
 from server.models.skill import LatestExam, SkillBuildRequest, SkillRead, SkillUpdateRequest
 from server.storage.sqlite import connect, decode_json, encode_json, initialize_database
 
@@ -491,6 +492,34 @@ class ExamRepository:
                 ),
             )
         return exam_id
+
+
+class ReviewRepository:
+    def __init__(self, database_url: str) -> None:
+        self.database_url = database_url
+        initialize_database(database_url)
+
+    def create(self, request: ReviewCreate) -> str:
+        review_id = f"rev_{uuid4().hex[:12]}"
+        with connect(self.database_url) as connection:
+            connection.execute(
+                """
+                INSERT INTO reviews (
+                  id, object_type, object_id, decision, reviewer, notes, metadata
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    review_id,
+                    request.object_type,
+                    request.object_id,
+                    request.decision,
+                    request.reviewer,
+                    request.notes,
+                    encode_json(request.metadata),
+                ),
+            )
+        return review_id
 
 
 def _experience_from_row(row: Any, *, cognition_ids: list[str]) -> ExperienceRead:

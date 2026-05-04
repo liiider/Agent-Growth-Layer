@@ -22,7 +22,7 @@ class ExamRunner:
         self.skill_repository.update_status(skill.id, "testing")
         score, failures = self._score(skill, request)
         passed = score >= PASSING_SCORE
-        new_status = "verified" if passed else "failed"
+        new_status = _status_after_exam(passed, request)
         exam_id = self.exam_repository.create(
             skill_id=skill.id,
             evaluator=request.evaluator,
@@ -94,3 +94,11 @@ def _failures_from_score(score: float) -> list[str]:
     if score >= PASSING_SCORE:
         return []
     return [f"Score {score:.2f} is below passing threshold {PASSING_SCORE:.2f}."]
+
+
+def _status_after_exam(passed: bool, request: ExamRequest) -> str:
+    if not passed:
+        return "failed"
+    if request.require_human_review:
+        return "needs_review"
+    return "verified"

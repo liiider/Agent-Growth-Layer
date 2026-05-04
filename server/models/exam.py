@@ -14,6 +14,7 @@ class ExamRequest(BaseModel):
     evaluator: Literal["manual_score", "llm_judge"] = "manual_score"
     score: float | None = Field(default=None, ge=0, le=1)
     cases: list[ExamCase] = Field(default_factory=list)
+    require_human_review: bool = False
 
 
 class ExamResponse(BaseModel):

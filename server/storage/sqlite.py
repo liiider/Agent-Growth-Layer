@@ -145,6 +145,20 @@ def initialize_database(database_url: str) -> None:
             )
             """
         )
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS reviews (
+              id TEXT PRIMARY KEY,
+              object_type TEXT NOT NULL,
+              object_id TEXT NOT NULL,
+              decision TEXT NOT NULL,
+              reviewer TEXT NOT NULL,
+              notes TEXT NOT NULL,
+              metadata TEXT NOT NULL,
+              created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
 
 
 def sqlite_path_from_url(database_url: str) -> Path:

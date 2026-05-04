@@ -6,6 +6,7 @@ SkillStatus = Literal[
     "seed",
     "candidate",
     "testing",
+    "needs_review",
     "verified",
     "failed",
     "deprecated",

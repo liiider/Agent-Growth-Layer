@@ -43,6 +43,7 @@ def test_sdk_exports_client() -> None:
     assert client.cognitions.base_url == "http://example.test"
     assert client.skills.base_url == "http://example.test"
     assert client.audit.base_url == "http://example.test"
+    assert client.reviews.base_url == "http://example.test"
 
 
 def test_guidance_to_prompt_marks_candidate_skills_as_unverified() -> None:
@@ -178,6 +179,13 @@ def test_python_sdk_resources_call_expected_api_paths(monkeypatch) -> None:
     assert client.skills.update_status("skill_1", "verified") == {"ok": True}
     assert client.skills.run_exam("skill_1", score=0.9) == {"ok": True}
     assert client.audit.get("skill", "skill_1") == {"ok": True}
+    assert client.reviews.create(
+        object_type="skill",
+        object_id="skill_1",
+        decision="approve",
+        reviewer="human_reviewer",
+        notes="Passed project review.",
+    ) == {"ok": True}
 
     assert calls == [
         {
@@ -303,6 +311,20 @@ def test_python_sdk_resources_call_expected_api_paths(monkeypatch) -> None:
             "method": "GET",
             "url": "http://example.test/v1/audit/skill/skill_1",
             "json": None,
+            "params": None,
+            "timeout": 17,
+        },
+        {
+            "method": "POST",
+            "url": "http://example.test/v1/reviews",
+            "json": {
+                "object_type": "skill",
+                "object_id": "skill_1",
+                "decision": "approve",
+                "reviewer": "human_reviewer",
+                "notes": "Passed project review.",
+                "metadata": {},
+            },
             "params": None,
             "timeout": 17,
         },

@@ -4,6 +4,7 @@ from agent_growth.cognitions import CognitionsClient
 from agent_growth.experiences import ExperiencesClient
 from agent_growth.feedback import FeedbackClient
 from agent_growth.guidance import Guidance
+from agent_growth.reviews import ReviewsClient
 from agent_growth.skills import SkillsClient
 
 __all__ = [
@@ -13,5 +14,6 @@ __all__ = [
     "ExperiencesClient",
     "FeedbackClient",
     "Guidance",
+    "ReviewsClient",
     "SkillsClient",
 ]

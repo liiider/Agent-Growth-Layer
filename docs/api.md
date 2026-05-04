@@ -234,6 +234,48 @@ Response:
 
 Passing exams promote the skill into verified guidance. Failed exams set the skill to `failed`.
 
+Set `require_human_review` when a passing exam should stop at `needs_review` until a human
+review approves the skill:
+
+```json
+{
+  "evaluator": "manual_score",
+  "score": 0.9,
+  "require_human_review": true,
+  "cases": []
+}
+```
+
+## Human Review
+
+```http
+POST /v1/reviews
+```
+
+Reviews record human decisions for experiences, cognitions, and skills.
+
+Request:
+
+```json
+{
+  "object_type": "skill",
+  "object_id": "skill_...",
+  "decision": "approve",
+  "reviewer": "project_owner",
+  "notes": "Passing exam and project owner review approve this skill.",
+  "metadata": {}
+}
+```
+
+Behavior:
+
+- Experience reviews are recorded as evidence but do not change status.
+- Cognition `approve` sets status to `verified`.
+- Cognition `reject` sets status to `deprecated`.
+- Cognition or skill `quarantine` sets status to `quarantined`.
+- Skill `approve` requires a passing exam, then sets status to `verified`.
+- Skill `reject` sets status to `failed`.
+
 ## Audit
 
 ```http
@@ -321,5 +363,12 @@ skill = client.skills.build(
 )["skill"]
 
 client.skills.run_exam(skill["id"], score=0.9)
+client.reviews.create(
+    object_type="skill",
+    object_id=skill["id"],
+    decision="approve",
+    reviewer="project_owner",
+    notes="Passing exam and project owner review approve this skill.",
+)
 audit = client.audit.get("skill", skill["id"])
 ```

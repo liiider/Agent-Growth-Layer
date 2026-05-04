@@ -68,6 +68,8 @@ These choices preserve local-first operation and stable tests.
 - Full Docker-backed local MVP verification chain
 - JavaScript SDK TypeScript build through `npm.cmd run build`
 - DeepSeek real BYOK LLM validation for extraction, prompt import, and `llm_judge`
+- Human review gate for experience/cognition/skill decisions
+- Project-level MVP scenario harness through `scripts/verify_project_mvp.py`
 
 ## Not Yet Fully Verified In This Environment
 
